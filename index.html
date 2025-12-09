@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Янис - Интерактивное меню</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .menu-container {
+            position: relative;
+            width: 1280px;
+            height: 683px;
+            max-width: 100%;
+        }
+
+        .menu-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .menu-button {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .menu-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0);
+            transition: all 0.3s ease;
+        }
+
+        .menu-button:hover::before {
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow:
+                0 0 20px rgba(255, 215, 0, 0.4),
+                0 0 40px rgba(255, 215, 0, 0.2),
+                0 0 60px rgba(255, 215, 0, 0.1);
+        }
+
+        .menu-button:hover {
+            transform: scale(1.15);
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Пульсирующая анимация */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.1);
+            }
+        }
+
+        .menu-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* Позиции кнопок */
+        .btn-settings {
+            left: 25px;
+            top: 310px;
+        }
+
+        .btn-tasks {
+            left: 245px;
+            top: 175px;
+        }
+
+        .btn-cloud {
+            left: 245px;
+            top: 385px;
+        }
+
+        .btn-analytics {
+            right: 290px;
+            top: 175px;
+        }
+
+        .btn-security {
+            right: 95px;
+            top: 290px;
+        }
+
+        .btn-search {
+            right: 280px;
+            top: 430px;
+        }
+
+        /* Тултипы */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffd700;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 100;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-button:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .btn-settings .tooltip {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+        }
+
+        .btn-tasks .tooltip,
+        .btn-cloud .tooltip {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+        }
+
+        .btn-analytics .tooltip,
+        .btn-security .tooltip,
+        .btn-search .tooltip {
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 10px;
+        }
+
+        /* Эффект при клике */
+        @keyframes clickEffect {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        .click-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.5);
+            transform: translate(-50%, -50%);
+            animation: clickEffect 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        /* Появление кнопок при загрузке */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .menu-button {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .btn-settings { animation-delay: 0.1s; }
+        .btn-tasks { animation-delay: 0.2s; }
+        .btn-cloud { animation-delay: 0.3s; }
+        .btn-analytics { animation-delay: 0.4s; }
+        .btn-security { animation-delay: 0.5s; }
+        .btn-search { animation-delay: 0.6s; }
+
+        /* Адаптивность */
+        @media (max-width: 1300px) {
+            .menu-container {
+                width: 100vw;
+                height: auto;
+                aspect-ratio: 1280 / 683;
+            }
+
+            .menu-button {
+                width: 6%;
+                height: 11%;
+            }
+
+            .btn-settings {
+                left: 2%;
+                top: 45%;
+            }
+
+            .btn-tasks {
+                left: 19%;
+                top: 25%;
+            }
+
+            .btn-cloud {
+                left: 19%;
+                top: 56%;
+            }
+
+            .btn-analytics {
+                right: 23%;
+                top: 25%;
+            }
+
+            .btn-security {
+                right: 7.5%;
+                top: 42%;
+            }
+
+            .btn-search {
+                right: 22%;
+                top: 63%;
+            }
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            max-width: 400px;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .modal-content p {
+            color: #ccc;
+            margin-bottom: 25px;
+        }
+
+        .modal-close {
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .modal-close:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">
+        <img src="photo_2025-12-08_23-49-13.jpg" alt="Янис Menu" class="menu-bg">
+
+        <!-- Кнопка Настройки (шестерёнка) -->
+        <button class="menu-button btn-settings" data-action="settings">
+            <span class="tooltip">Настройки</span>
+        </button>
+
+        <!-- Кнопка Задачи (галочка) -->
+        <button class="menu-button btn-tasks" data-action="tasks">
+            <span class="tooltip">Задачи</span>
+        </button>
+
+        <!-- Кнопка Облако -->
+        <button class="menu-button btn-cloud" data-action="cloud">
+            <span class="tooltip">Облачные сервисы</span>
+        </button>
+
+        <!-- Кнопка Аналитика (график) -->
+        <button class="menu-button btn-analytics" data-action="analytics">
+            <span class="tooltip">Аналитика</span>
+        </button>
+
+        <!-- Кнопка Безопасность (щит) -->
+        <button class="menu-button btn-security" data-action="security">
+            <span class="tooltip">Безопасность</span>
+        </button>
+
+        <!-- Кнопка Поиск (лупа) -->
+        <button class="menu-button btn-search" data-action="search">
+            <span class="tooltip">Поиск</span>
+        </button>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Заголовок</h2>
+            <p id="modal-text">Описание раздела</p>
+            <button class="modal-close" onclick="closeModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        // Данные для модальных окон
+        const menuData = {
+            settings: {
+                title: 'Настройки',
+                text: 'Управление параметрами системы и персонализация интерфейса'
+            },
+            tasks: {
+                title: 'Задачи',
+                text: 'Управление задачами, планирование и отслеживание прогресса'
+            },
+            cloud: {
+                title: 'Облачные сервисы',
+                text: 'Синхронизация данных и облачное хранилище'
+            },
+            analytics: {
+                title: 'Аналитика',
+                text: 'Статистика, отчёты и анализ данных'
+            },
+            security: {
+                title: 'Безопасность',
+                text: 'Защита данных, управление доступом и приватность'
+            },
+            search: {
+                title: 'Поиск',
+                text: 'Быстрый поиск по всей системе'
+            }
+        };
+
+        // Обработка кликов на кнопки
+        document.querySelectorAll('.menu-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Эффект клика
+                const effect = document.createElement('div');
+                effect.className = 'click-effect';
+                this.appendChild(effect);
+                setTimeout(() => effect.remove(), 500);
+
+                // Открытие модального окна
+                const action = this.dataset.action;
+                const data = menuData[action];
+
+                document.getElementById('modal-title').textContent = data.title;
+                document.getElementById('modal-text').textContent = data.text;
+
+                const modal = document.getElementById('modal');
+                modal.classList.add('active');
+            });
+
+            // Звуковой эффект при наведении (опционально)
+            button.addEventListener('mouseenter', function() {
+                this.style.filter = 'brightness(1.2)';
+            });
+
+            button.addEventListener('mouseleave', function() {
+                this.style.filter = 'brightness(1)';
+            });
+        });
+
+        // Закрытие модального окна
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Закрытие по клику вне окна
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
