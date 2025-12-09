@@ -5,458 +5,1673 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Янис - Интерактивное меню</title>
     <style>
+        /* ============================================
+           БАЗОВЫЕ СТИЛИ
+           ============================================ */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
-            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            perspective: 1000px;
         }
 
-        .menu-container {
+        /* ============================================
+           КОНТЕЙНЕР СЦЕНЫ
+           ============================================ */
+        .scene-container {
             position: relative;
-            width: 1280px;
-            height: 683px;
-            max-width: 100%;
+            width: 1365px;
+            height: 768px;
+            max-width: 100vw;
+            max-height: 100vh;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
         }
 
-        .menu-bg {
+        /* ============================================
+           СЛОИ ИЗОБРАЖЕНИЙ
+           ============================================ */
+        .layer {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s ease-out;
         }
 
-        .menu-button {
+        .layer-background {
+            background-image: url('Make_sure_the_202512091522.jpeg');
+            z-index: 1;
+            filter: brightness(1) saturate(1.1);
+            animation: backgroundBreathing 8s ease-in-out infinite;
+        }
+
+        .layer-icons {
+            background-image: url('Cut_out_each_202512091524.jpeg');
+            z-index: 10;
+            background-color: transparent;
+        }
+
+        /* ============================================
+           ЭФФЕКТ ДЫХАНИЯ ФОНА
+           ============================================ */
+        @keyframes backgroundBreathing {
+            0%, 100% {
+                transform: scale(1);
+                filter: brightness(1) saturate(1.1);
+            }
+            50% {
+                transform: scale(1.02);
+                filter: brightness(1.05) saturate(1.2);
+            }
+        }
+
+        /* ============================================
+           ЧАСТИЦЫ - ЗОЛОТЫЕ ИСКРЫ
+           ============================================ */
+        .particles-container {
             position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #ffd700 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 10s infinite ease-in-out;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* ============================================
+           ЛУЧИ СВЕТА
+           ============================================ */
+        .light-rays {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 300px;
+            z-index: 3;
+            pointer-events: none;
+            background: conic-gradient(
+                from 180deg at 50% 0%,
+                transparent 0deg,
+                rgba(255, 215, 0, 0.1) 10deg,
+                transparent 20deg,
+                rgba(255, 215, 0, 0.08) 30deg,
+                transparent 40deg,
+                rgba(255, 215, 0, 0.12) 50deg,
+                transparent 60deg,
+                rgba(255, 215, 0, 0.06) 70deg,
+                transparent 80deg,
+                rgba(255, 215, 0, 0.1) 90deg,
+                transparent 100deg,
+                rgba(255, 215, 0, 0.08) 110deg,
+                transparent 120deg,
+                rgba(255, 215, 0, 0.1) 130deg,
+                transparent 140deg,
+                rgba(255, 215, 0, 0.07) 150deg,
+                transparent 160deg,
+                rgba(255, 215, 0, 0.09) 170deg,
+                transparent 180deg
+            );
+            animation: raysRotate 20s linear infinite, raysPulse 4s ease-in-out infinite;
+            filter: blur(2px);
+        }
+
+        @keyframes raysRotate {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        @keyframes raysPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* ============================================
+           ИНТЕРАКТИВНЫЕ КНОПКИ
+           ============================================ */
+        .menu-buttons {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+        }
+
+        .menu-btn {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        /* Внутреннее свечение кнопки */
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            transition: all 0.3s ease;
-            z-index: 10;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0) 0%, rgba(255, 215, 0, 0) 100%);
+            transition: all 0.4s ease;
+            z-index: -1;
         }
 
-        .menu-button::before {
+        /* Внешнее кольцо свечения */
+        .menu-btn::after {
             content: '';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 215, 0, 0);
-            transition: all 0.3s ease;
-        }
-
-        .menu-button:hover::before {
             width: 90px;
             height: 90px;
-            background: rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: all 0.4s ease;
+            z-index: -2;
+        }
+
+        /* Hover состояние */
+        .menu-btn:hover {
+            transform: scale(1.2) translateZ(30px);
+        }
+
+        .menu-btn:hover::before {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 215, 0, 0) 70%);
             box-shadow:
-                0 0 20px rgba(255, 215, 0, 0.4),
-                0 0 40px rgba(255, 215, 0, 0.2),
-                0 0 60px rgba(255, 215, 0, 0.1);
+                0 0 30px rgba(255, 215, 0, 0.5),
+                0 0 60px rgba(255, 215, 0, 0.3),
+                0 0 90px rgba(255, 215, 0, 0.2);
         }
 
-        .menu-button:hover {
-            transform: scale(1.15);
+        .menu-btn:hover::after {
+            width: 140px;
+            height: 140px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            animation: ringPulse 1s ease-in-out infinite;
         }
 
-        .menu-button:active {
-            transform: scale(0.95);
-        }
-
-        /* Пульсирующая анимация */
-        @keyframes pulse {
+        @keyframes ringPulse {
             0%, 100% {
-                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
             }
             50% {
-                box-shadow: 0 0 20px 10px rgba(255, 215, 0, 0.1);
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.5;
             }
         }
 
-        .menu-button::after {
-            content: '';
+        /* Active состояние */
+        .menu-btn:active {
+            transform: scale(0.95) translateZ(10px);
+        }
+
+        /* ============================================
+           ПУЛЬСИРУЮЩИЕ КОЛЬЦА ПРИ HOVER
+           ============================================ */
+        .pulse-ring {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 70px;
-            height: 70px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            border: 2px solid rgba(255, 215, 0, 0);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        /* Позиции кнопок */
+        .menu-btn:hover .pulse-ring {
+            opacity: 1;
+            animation: expandRing 1.5s ease-out infinite;
+        }
+
+        .menu-btn:hover .pulse-ring:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .menu-btn:hover .pulse-ring:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes expandRing {
+            0% {
+                width: 100px;
+                height: 100px;
+                border-color: rgba(255, 215, 0, 0.8);
+                opacity: 1;
+            }
+            100% {
+                width: 200px;
+                height: 200px;
+                border-color: rgba(255, 215, 0, 0);
+                opacity: 0;
+            }
+        }
+
+        /* ============================================
+           ПОЗИЦИИ КНОПОК
+           ============================================ */
         .btn-settings {
-            left: 25px;
-            top: 310px;
+            left: 55px;
+            top: 280px;
         }
 
         .btn-tasks {
-            left: 245px;
-            top: 175px;
+            left: 260px;
+            top: 185px;
         }
 
         .btn-cloud {
-            left: 245px;
-            top: 385px;
+            left: 280px;
+            top: 395px;
         }
 
         .btn-analytics {
-            right: 290px;
+            right: 280px;
             top: 175px;
         }
 
         .btn-security {
-            right: 95px;
-            top: 290px;
+            right: 100px;
+            top: 265px;
         }
 
         .btn-search {
-            right: 280px;
-            top: 430px;
+            right: 295px;
+            top: 400px;
         }
 
-        /* Тултипы */
+        /* ============================================
+           ТУЛТИПЫ
+           ============================================ */
         .tooltip {
             position: absolute;
-            background: rgba(0, 0, 0, 0.85);
+            background: linear-gradient(135deg, rgba(20, 20, 40, 0.95) 0%, rgba(10, 10, 30, 0.98) 100%);
             color: #ffd700;
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             white-space: nowrap;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
             z-index: 100;
             border: 1px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(255, 215, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transform: translateY(10px);
+            letter-spacing: 1px;
         }
 
-        .menu-button:hover .tooltip {
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, rgba(20, 20, 40, 0.95) 0%, rgba(10, 10, 30, 0.98) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-right: none;
+            border-top: none;
+            transform: rotate(45deg);
+        }
+
+        .menu-btn:hover .tooltip {
             opacity: 1;
             visibility: visible;
+            transform: translateY(0);
         }
 
-        .btn-settings .tooltip {
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            margin-left: 10px;
-        }
-
+        /* Позиции тултипов */
+        .btn-settings .tooltip,
         .btn-tasks .tooltip,
         .btn-cloud .tooltip {
-            left: 100%;
+            left: 120%;
             top: 50%;
-            transform: translateY(-50%);
-            margin-left: 10px;
+            transform: translateY(-50%) translateX(10px);
+        }
+
+        .btn-settings .tooltip::before,
+        .btn-tasks .tooltip::before,
+        .btn-cloud .tooltip::before {
+            left: -7px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .menu-btn:hover .tooltip {
+            transform: translateY(-50%) translateX(0);
         }
 
         .btn-analytics .tooltip,
         .btn-security .tooltip,
         .btn-search .tooltip {
-            right: 100%;
+            right: 120%;
+            left: auto;
             top: 50%;
-            transform: translateY(-50%);
-            margin-right: 10px;
+            transform: translateY(-50%) translateX(-10px);
         }
 
-        /* Эффект при клике */
-        @keyframes clickEffect {
-            0% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(2);
-                opacity: 0;
-            }
+        .btn-analytics .tooltip::before,
+        .btn-security .tooltip::before,
+        .btn-search .tooltip::before {
+            right: -7px;
+            left: auto;
+            top: 50%;
+            transform: translateY(-50%) rotate(-135deg);
         }
 
-        .click-effect {
+        .btn-analytics:hover .tooltip,
+        .btn-security:hover .tooltip,
+        .btn-search:hover .tooltip {
+            transform: translateY(-50%) translateX(0);
+        }
+
+        /* ============================================
+           ЭФФЕКТ КЛИКА - ВОЛНА
+           ============================================ */
+        .click-wave {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 215, 0, 0.5);
             transform: translate(-50%, -50%);
-            animation: clickEffect 0.5s ease-out forwards;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
             pointer-events: none;
+            animation: clickWaveExpand 0.6s ease-out forwards;
         }
 
-        /* Появление кнопок при загрузке */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
+        @keyframes clickWaveExpand {
+            0% {
+                width: 20px;
+                height: 20px;
                 opacity: 1;
-                transform: translateY(0);
+            }
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
             }
         }
 
-        .menu-button {
-            opacity: 0;
-            animation: fadeInUp 0.6s ease forwards;
+        /* ============================================
+           МАГИЧЕСКИЕ ИСКРЫ ПРИ HOVER
+           ============================================ */
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkleAnim 0.8s ease-out forwards;
+            box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
         }
 
-        .btn-settings { animation-delay: 0.1s; }
-        .btn-tasks { animation-delay: 0.2s; }
-        .btn-cloud { animation-delay: 0.3s; }
-        .btn-analytics { animation-delay: 0.4s; }
-        .btn-security { animation-delay: 0.5s; }
-        .btn-search { animation-delay: 0.6s; }
-
-        /* Адаптивность */
-        @media (max-width: 1300px) {
-            .menu-container {
-                width: 100vw;
-                height: auto;
-                aspect-ratio: 1280 / 683;
+        @keyframes sparkleAnim {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
             }
-
-            .menu-button {
-                width: 6%;
-                height: 11%;
-            }
-
-            .btn-settings {
-                left: 2%;
-                top: 45%;
-            }
-
-            .btn-tasks {
-                left: 19%;
-                top: 25%;
-            }
-
-            .btn-cloud {
-                left: 19%;
-                top: 56%;
-            }
-
-            .btn-analytics {
-                right: 23%;
-                top: 25%;
-            }
-
-            .btn-security {
-                right: 7.5%;
-                top: 42%;
-            }
-
-            .btn-search {
-                right: 22%;
-                top: 63%;
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
             }
         }
 
-        /* Модальное окно */
-        .modal {
-            display: none;
+        /* ============================================
+           МОДАЛЬНОЕ ОКНО
+           ============================================ */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0);
+            display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            visibility: hidden;
+            transition: all 0.5s ease;
         }
 
-        .modal.active {
-            display: flex;
+        .modal-overlay.active {
             opacity: 1;
+            visibility: visible;
+            background: rgba(0, 0, 0, 0.85);
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #2a2a4a 0%, #1a1a3e 100%);
-            padding: 40px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, #1a1a3e 0%, #0d0d2b 100%);
+            padding: 50px;
+            border-radius: 30px;
             text-align: center;
-            color: white;
+            max-width: 500px;
+            width: 90%;
             border: 2px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            transform: scale(0.8);
-            transition: transform 0.3s ease;
-            max-width: 400px;
+            box-shadow:
+                0 30px 100px rgba(0, 0, 0, 0.8),
+                0 0 50px rgba(255, 215, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: scale(0.8) translateY(50px);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
 
-        .modal.active .modal-content {
-            transform: scale(1);
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
         }
 
-        .modal-content h2 {
+        /* Анимированный фон модального окна */
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                transparent 0deg,
+                rgba(255, 215, 0, 0.03) 90deg,
+                transparent 180deg,
+                rgba(255, 215, 0, 0.03) 270deg,
+                transparent 360deg
+            );
+            animation: modalBgRotate 10s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes modalBgRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            box-shadow:
+                0 10px 30px rgba(255, 215, 0, 0.4),
+                0 0 50px rgba(255, 215, 0, 0.2);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .modal-title {
             color: #ffd700;
+            font-size: 32px;
             margin-bottom: 15px;
-            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
         }
 
-        .modal-content p {
-            color: #ccc;
-            margin-bottom: 25px;
+        .modal-text {
+            color: #b0b0c0;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 35px;
         }
 
         .modal-close {
             background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
+            padding: 15px 45px;
+            border-radius: 30px;
             color: #1a1a2e;
-            font-weight: bold;
+            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
         }
 
         .modal-close:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        .modal-close:active {
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           ЗВЁЗДНОЕ НЕБО
+           ============================================ */
+        .stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: starTwinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* ============================================
+           ВОЛНОВОЙ ЭФФЕКТ ФОНА
+           ============================================ */
+        .wave-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            z-index: 4;
+            pointer-events: none;
+            background: linear-gradient(to top, rgba(10, 10, 30, 0.5) 0%, transparent 100%);
+            animation: waveMove 8s ease-in-out infinite;
+        }
+
+        @keyframes waveMove {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* ============================================
+           ЦЕНТРАЛЬНОЕ СВЕЧЕНИЕ
+           ============================================ */
+        .center-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            z-index: 6;
+            pointer-events: none;
+            animation: centerGlowPulse 5s ease-in-out infinite;
+        }
+
+        @keyframes centerGlowPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; }
+        }
+
+        /* ============================================
+           ЭФФЕКТ СЛЕДА КУРСОРА
+           ============================================ */
+        .cursor-trail {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 30;
+            animation: cursorTrailFade 0.5s ease-out forwards;
+        }
+
+        @keyframes cursorTrailFade {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* ============================================
+           ЭФФЕКТ СВЕЧЕНИЯ БУКВ ЛОГОТИПА
+           ============================================ */
+        .logo-glow {
+            position: absolute;
+            top: 50px;
+            left: 80px;
+            width: 200px;
+            height: 80px;
+            z-index: 15;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+            animation: logoGlowPulse 3s ease-in-out infinite;
+            filter: blur(10px);
+        }
+
+        @keyframes logoGlowPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* ============================================
+           ПИРАМИДА СВЕЧЕНИЕ
+           ============================================ */
+        .pyramid-glow {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 150px;
+            z-index: 15;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 50% 100%, rgba(255, 215, 0, 0.4) 0%, transparent 60%);
+            animation: pyramidGlow 4s ease-in-out infinite;
+            filter: blur(15px);
+        }
+
+        @keyframes pyramidGlow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* ============================================
+           ОРБИТАЛЬНЫЕ ЧАСТИЦЫ
+           ============================================ */
+        .orbital-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            z-index: 7;
+            pointer-events: none;
+        }
+
+        .orbital-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffd700 0%, transparent 70%);
+            border-radius: 50%;
+            animation: orbit 20s linear infinite;
+        }
+
+        .orbital-particle:nth-child(1) {
+            top: 0;
+            left: 50%;
+            animation-duration: 15s;
+        }
+
+        .orbital-particle:nth-child(2) {
+            top: 50%;
+            right: 0;
+            animation-duration: 20s;
+            animation-delay: -5s;
+        }
+
+        .orbital-particle:nth-child(3) {
+            bottom: 0;
+            left: 50%;
+            animation-duration: 25s;
+            animation-delay: -10s;
+        }
+
+        .orbital-particle:nth-child(4) {
+            top: 50%;
+            left: 0;
+            animation-duration: 18s;
+            animation-delay: -7s;
+        }
+
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(250px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(250px) rotate(-360deg); }
+        }
+
+        /* ============================================
+           МАГНИТНЫЙ ЭФФЕКТ КНОПОК
+           ============================================ */
+        .magnetic-area {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* ============================================
+           ГОЛОГРАФИЧЕСКИЙ ЭФФЕКТ
+           ============================================ */
+        .holographic-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 8;
+            pointer-events: none;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(255, 215, 0, 0.02) 25%,
+                transparent 50%,
+                rgba(255, 215, 0, 0.02) 75%,
+                transparent 100%
+            );
+            background-size: 200% 200%;
+            animation: holographicShift 10s linear infinite;
+        }
+
+        @keyframes holographicShift {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 200%; }
+        }
+
+        /* ============================================
+           СВЕТОВЫЕ ПОЛОСЫ
+           ============================================ */
+        .light-streaks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .light-streak {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, rgba(255, 215, 0, 0.5), transparent);
+            animation: streakFall 8s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes streakFall {
+            0% { transform: translateY(-100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(calc(100vh + 100px)); opacity: 0; }
+        }
+
+        /* ============================================
+           АНИМАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+           ============================================ */
+        .layer-icons {
+            animation: iconsAppear 1.5s ease-out forwards;
+        }
+
+        @keyframes iconsAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .menu-btn {
+            opacity: 0;
+            animation: buttonAppear 0.8s ease-out forwards;
+        }
+
+        .btn-settings { animation-delay: 0.2s; }
+        .btn-tasks { animation-delay: 0.35s; }
+        .btn-cloud { animation-delay: 0.5s; }
+        .btn-analytics { animation-delay: 0.65s; }
+        .btn-security { animation-delay: 0.8s; }
+        .btn-search { animation-delay: 0.95s; }
+
+        @keyframes buttonAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(-180deg);
+            }
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        /* ============================================
+           НЕПРЕРЫВНАЯ ПУЛЬСАЦИЯ КНОПОК
+           ============================================ */
+        .btn-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            animation: btnPulseAnim 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes btnPulseAnim {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+        }
+
+        /* ============================================
+           ЭНЕРГЕТИЧЕСКИЕ ЛИНИИ
+           ============================================ */
+        .energy-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .energy-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.6), transparent);
+            animation: energyLineMove 5s linear infinite;
+        }
+
+        @keyframes energyLineMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100vw); }
+        }
+
+        /* ============================================
+           ЭФФЕКТ МАТРИЦЫ/ЦИФРОВОГО ДОЖДЯ
+           ============================================ */
+        .digital-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.3;
+        }
+
+        .rain-drop {
+            position: absolute;
+            font-family: monospace;
+            font-size: 12px;
+            color: rgba(255, 215, 0, 0.7);
+            animation: rainFall 10s linear infinite;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes rainFall {
+            0% { transform: translateY(-20px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* ============================================
+           ПЛАВАЮЩИЕ ГЕОМЕТРИЧЕСКИЕ ФИГУРЫ
+           ============================================ */
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            animation: shapeFloat 15s ease-in-out infinite;
+        }
+
+        .floating-shape.triangle {
+            width: 0;
+            height: 0;
+            border: none;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 25px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .floating-shape.circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .floating-shape.square {
+            width: 20px;
+            height: 20px;
+        }
+
+        @keyframes shapeFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-30px) rotate(90deg);
+            }
+            50% {
+                transform: translateY(-10px) rotate(180deg);
+            }
+            75% {
+                transform: translateY(-40px) rotate(270deg);
+            }
+        }
+
+        /* ============================================
+           АДАПТИВНОСТЬ
+           ============================================ */
+        @media (max-width: 1400px) {
+            .scene-container {
+                width: 100vw;
+                height: calc(100vw * 768 / 1365);
+            }
+
+            .menu-btn {
+                width: 7vw;
+                height: 7vw;
+            }
+
+            .btn-settings { left: 4%; top: 36%; }
+            .btn-tasks { left: 19%; top: 24%; }
+            .btn-cloud { left: 20%; top: 51%; }
+            .btn-analytics { right: 20%; top: 22%; }
+            .btn-security { right: 7%; top: 34%; }
+            .btn-search { right: 21%; top: 52%; }
+        }
+
+        /* ============================================
+           СИЯЮЩИЙ КУРСОР
+           ============================================ */
+        .glow-cursor {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s;
+        }
+
+        /* ============================================
+           3D ТРАНСФОРМАЦИЯ ПРИ ДВИЖЕНИИ МЫШИ
+           ============================================ */
+        .scene-container.parallax-active {
+            transition: transform 0.1s ease-out;
+        }
+
+        /* ============================================
+           AMBIENT СВЕЧЕНИЕ
+           ============================================ */
+        .ambient-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 20%, rgba(255, 215, 0, 0.08) 0%, transparent 40%);
+            animation: ambientPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes ambientPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="menu-container">
-        <img src="photo_2025-12-08_23-49-13.jpg" alt="Янис Menu" class="menu-bg">
+    <!-- Сияющий курсор -->
+    <div class="glow-cursor" id="glowCursor"></div>
 
-        <!-- Кнопка Настройки (шестерёнка) -->
-        <button class="menu-button btn-settings" data-action="settings">
-            <span class="tooltip">Настройки</span>
-        </button>
+    <!-- Основной контейнер -->
+    <div class="scene-container" id="sceneContainer">
+        <!-- Звёздное небо -->
+        <div class="stars-container" id="starsContainer"></div>
 
-        <!-- Кнопка Задачи (галочка) -->
-        <button class="menu-button btn-tasks" data-action="tasks">
-            <span class="tooltip">Задачи</span>
-        </button>
+        <!-- Цифровой дождь -->
+        <div class="digital-rain" id="digitalRain"></div>
 
-        <!-- Кнопка Облако -->
-        <button class="menu-button btn-cloud" data-action="cloud">
-            <span class="tooltip">Облачные сервисы</span>
-        </button>
+        <!-- Плавающие фигуры -->
+        <div class="floating-shapes" id="floatingShapes"></div>
 
-        <!-- Кнопка Аналитика (график) -->
-        <button class="menu-button btn-analytics" data-action="analytics">
-            <span class="tooltip">Аналитика</span>
-        </button>
+        <!-- Энергетические линии -->
+        <div class="energy-lines" id="energyLines"></div>
 
-        <!-- Кнопка Безопасность (щит) -->
-        <button class="menu-button btn-security" data-action="security">
-            <span class="tooltip">Безопасность</span>
-        </button>
+        <!-- Фоновое изображение -->
+        <div class="layer layer-background"></div>
 
-        <!-- Кнопка Поиск (лупа) -->
-        <button class="menu-button btn-search" data-action="search">
-            <span class="tooltip">Поиск</span>
-        </button>
+        <!-- Ambient свечение -->
+        <div class="ambient-glow"></div>
+
+        <!-- Волновой эффект -->
+        <div class="wave-overlay"></div>
+
+        <!-- Лучи света -->
+        <div class="light-rays"></div>
+
+        <!-- Световые полосы -->
+        <div class="light-streaks" id="lightStreaks"></div>
+
+        <!-- Голографический эффект -->
+        <div class="holographic-overlay"></div>
+
+        <!-- Частицы -->
+        <div class="particles-container" id="particlesContainer"></div>
+
+        <!-- Орбитальные частицы -->
+        <div class="orbital-particles">
+            <div class="orbital-particle"></div>
+            <div class="orbital-particle"></div>
+            <div class="orbital-particle"></div>
+            <div class="orbital-particle"></div>
+        </div>
+
+        <!-- Центральное свечение -->
+        <div class="center-glow"></div>
+
+        <!-- Свечение логотипа -->
+        <div class="logo-glow"></div>
+
+        <!-- Свечение пирамиды -->
+        <div class="pyramid-glow"></div>
+
+        <!-- Слой с иконками -->
+        <div class="layer layer-icons"></div>
+
+        <!-- Интерактивные кнопки -->
+        <div class="menu-buttons">
+            <!-- Настройки -->
+            <button class="menu-btn btn-settings" data-action="settings" data-icon="⚙️">
+                <div class="btn-pulse"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <span class="tooltip">⚙️ Настройки</span>
+            </button>
+
+            <!-- Задачи -->
+            <button class="menu-btn btn-tasks" data-action="tasks" data-icon="✓">
+                <div class="btn-pulse"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <span class="tooltip">✓ Задачи</span>
+            </button>
+
+            <!-- Облако -->
+            <button class="menu-btn btn-cloud" data-action="cloud" data-icon="☁️">
+                <div class="btn-pulse"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <span class="tooltip">☁️ Облачные сервисы</span>
+            </button>
+
+            <!-- Аналитика -->
+            <button class="menu-btn btn-analytics" data-action="analytics" data-icon="📈">
+                <div class="btn-pulse"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <span class="tooltip">📈 Аналитика</span>
+            </button>
+
+            <!-- Безопасность -->
+            <button class="menu-btn btn-security" data-action="security" data-icon="🛡️">
+                <div class="btn-pulse"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <span class="tooltip">🛡️ Безопасность</span>
+            </button>
+
+            <!-- Поиск -->
+            <button class="menu-btn btn-search" data-action="search" data-icon="🔍">
+                <div class="btn-pulse"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <span class="tooltip">🔍 Поиск</span>
+            </button>
+        </div>
     </div>
 
     <!-- Модальное окно -->
-    <div class="modal" id="modal">
+    <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
-            <h2 id="modal-title">Заголовок</h2>
-            <p id="modal-text">Описание раздела</p>
-            <button class="modal-close" onclick="closeModal()">Закрыть</button>
+            <div class="modal-icon" id="modalIcon">⚙️</div>
+            <h2 class="modal-title" id="modalTitle">Заголовок</h2>
+            <p class="modal-text" id="modalText">Описание раздела</p>
+            <button class="modal-close" id="modalClose">Закрыть</button>
         </div>
     </div>
 
     <script>
-        // Данные для модальных окон
+        /* ============================================
+           ДАННЫЕ МОДАЛЬНЫХ ОКОН
+           ============================================ */
         const menuData = {
             settings: {
+                icon: '⚙️',
                 title: 'Настройки',
-                text: 'Управление параметрами системы и персонализация интерфейса'
+                text: 'Полное управление параметрами системы, персонализация интерфейса и расширенные настройки пользователя'
             },
             tasks: {
+                icon: '✓',
                 title: 'Задачи',
-                text: 'Управление задачами, планирование и отслеживание прогресса'
+                text: 'Эффективное управление задачами, планирование проектов и отслеживание прогресса в реальном времени'
             },
             cloud: {
+                icon: '☁️',
                 title: 'Облачные сервисы',
-                text: 'Синхронизация данных и облачное хранилище'
+                text: 'Мгновенная синхронизация данных, безопасное облачное хранилище и доступ к файлам из любой точки мира'
             },
             analytics: {
+                icon: '📈',
                 title: 'Аналитика',
-                text: 'Статистика, отчёты и анализ данных'
+                text: 'Детальная статистика, интерактивные отчёты и глубокий анализ данных с визуализацией'
             },
             security: {
+                icon: '🛡️',
                 title: 'Безопасность',
-                text: 'Защита данных, управление доступом и приватность'
+                text: 'Максимальная защита данных, многоуровневое управление доступом и полная приватность'
             },
             search: {
+                icon: '🔍',
                 title: 'Поиск',
-                text: 'Быстрый поиск по всей системе'
+                text: 'Молниеносный интеллектуальный поиск по всей системе с фильтрами и подсказками'
             }
         };
 
-        // Обработка кликов на кнопки
-        document.querySelectorAll('.menu-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Эффект клика
-                const effect = document.createElement('div');
-                effect.className = 'click-effect';
-                this.appendChild(effect);
-                setTimeout(() => effect.remove(), 500);
+        /* ============================================
+           ИНИЦИАЛИЗАЦИЯ
+           ============================================ */
+        const sceneContainer = document.getElementById('sceneContainer');
+        const glowCursor = document.getElementById('glowCursor');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const buttons = document.querySelectorAll('.menu-btn');
 
-                // Открытие модального окна
-                const action = this.dataset.action;
-                const data = menuData[action];
-
-                document.getElementById('modal-title').textContent = data.title;
-                document.getElementById('modal-text').textContent = data.text;
-
-                const modal = document.getElementById('modal');
-                modal.classList.add('active');
-            });
-
-            // Звуковой эффект при наведении (опционально)
-            button.addEventListener('mouseenter', function() {
-                this.style.filter = 'brightness(1.2)';
-            });
-
-            button.addEventListener('mouseleave', function() {
-                this.style.filter = 'brightness(1)';
-            });
-        });
-
-        // Закрытие модального окна
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+        /* ============================================
+           СОЗДАНИЕ ЗВЁЗД
+           ============================================ */
+        function createStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (2 + Math.random() * 3) + 's';
+                container.appendChild(star);
+            }
         }
 
-        // Закрытие по клику вне окна
-        document.getElementById('modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
+        /* ============================================
+           СОЗДАНИЕ ЧАСТИЦ
+           ============================================ */
+        function createParticles() {
+            const container = document.getElementById('particlesContainer');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = (50 + Math.random() * 50) + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (8 + Math.random() * 6) + 's';
+                particle.style.width = (2 + Math.random() * 4) + 'px';
+                particle.style.height = particle.style.width;
+                container.appendChild(particle);
+            }
+        }
+
+        /* ============================================
+           СОЗДАНИЕ СВЕТОВЫХ ПОЛОС
+           ============================================ */
+        function createLightStreaks() {
+            const container = document.getElementById('lightStreaks');
+            for (let i = 0; i < 10; i++) {
+                const streak = document.createElement('div');
+                streak.className = 'light-streak';
+                streak.style.left = Math.random() * 100 + '%';
+                streak.style.animationDelay = Math.random() * 8 + 's';
+                streak.style.animationDuration = (5 + Math.random() * 5) + 's';
+                streak.style.height = (50 + Math.random() * 100) + 'px';
+                container.appendChild(streak);
+            }
+        }
+
+        /* ============================================
+           СОЗДАНИЕ ЦИФРОВОГО ДОЖДЯ
+           ============================================ */
+        function createDigitalRain() {
+            const container = document.getElementById('digitalRain');
+            const chars = '01アイウエオカキクケコ';
+            for (let i = 0; i < 30; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.textContent = chars[Math.floor(Math.random() * chars.length)];
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDelay = Math.random() * 10 + 's';
+                drop.style.animationDuration = (8 + Math.random() * 8) + 's';
+                container.appendChild(drop);
+            }
+        }
+
+        /* ============================================
+           СОЗДАНИЕ ПЛАВАЮЩИХ ФИГУР
+           ============================================ */
+        function createFloatingShapes() {
+            const container = document.getElementById('floatingShapes');
+            const shapeTypes = ['triangle', 'circle', 'square'];
+            for (let i = 0; i < 15; i++) {
+                const shape = document.createElement('div');
+                shape.className = 'floating-shape ' + shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                shape.style.left = Math.random() * 100 + '%';
+                shape.style.top = Math.random() * 100 + '%';
+                shape.style.animationDelay = Math.random() * 15 + 's';
+                shape.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(shape);
+            }
+        }
+
+        /* ============================================
+           СОЗДАНИЕ ЭНЕРГЕТИЧЕСКИХ ЛИНИЙ
+           ============================================ */
+        function createEnergyLines() {
+            const container = document.getElementById('energyLines');
+            for (let i = 0; i < 5; i++) {
+                const line = document.createElement('div');
+                line.className = 'energy-line';
+                line.style.top = (20 + Math.random() * 60) + '%';
+                line.style.width = (100 + Math.random() * 200) + 'px';
+                line.style.animationDelay = Math.random() * 5 + 's';
+                line.style.animationDuration = (3 + Math.random() * 4) + 's';
+                container.appendChild(line);
+            }
+        }
+
+        /* ============================================
+           ЭФФЕКТ ПАРАЛЛАКСА
+           ============================================ */
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = sceneContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            targetX = (e.clientX - centerX) / 50;
+            targetY = (e.clientY - centerY) / 50;
+
+            // Сияющий курсор
+            glowCursor.style.left = e.clientX + 'px';
+            glowCursor.style.top = e.clientY + 'px';
+        });
+
+        function animateParallax() {
+            mouseX += (targetX - mouseX) * 0.1;
+            mouseY += (targetY - mouseY) * 0.1;
+
+            sceneContainer.style.transform = `
+                rotateY(${mouseX * 0.5}deg)
+                rotateX(${-mouseY * 0.5}deg)
+            `;
+
+            // Параллакс слоёв
+            const bg = document.querySelector('.layer-background');
+            const icons = document.querySelector('.layer-icons');
+
+            if (bg) bg.style.transform = `translateX(${mouseX * -2}px) translateY(${mouseY * -2}px)`;
+            if (icons) icons.style.transform = `translateX(${mouseX * 3}px) translateY(${mouseY * 3}px)`;
+
+            requestAnimationFrame(animateParallax);
+        }
+
+        /* ============================================
+           СОЗДАНИЕ ИСКР ПРИ HOVER
+           ============================================ */
+        function createSparkles(btn, e) {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            for (let i = 0; i < 5; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = x + 'px';
+                sparkle.style.top = y + 'px';
+                sparkle.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+                sparkle.style.setProperty('--ty', (Math.random() - 0.5) * 100 + 'px');
+                btn.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 800);
+            }
+        }
+
+        /* ============================================
+           ЭФФЕКТ КЛИКА
+           ============================================ */
+        function createClickWave(btn) {
+            const wave = document.createElement('div');
+            wave.className = 'click-wave';
+            btn.appendChild(wave);
+            setTimeout(() => wave.remove(), 600);
+        }
+
+        /* ============================================
+           СЛЕД КУРСОРА
+           ============================================ */
+        let trailTimeout;
+        document.addEventListener('mousemove', (e) => {
+            clearTimeout(trailTimeout);
+            trailTimeout = setTimeout(() => {
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = e.clientX + 'px';
+                trail.style.top = e.clientY + 'px';
+                document.body.appendChild(trail);
+                setTimeout(() => trail.remove(), 500);
+            }, 50);
+        });
+
+        /* ============================================
+           ОБРАБОТЧИКИ КНОПОК
+           ============================================ */
+        buttons.forEach(btn => {
+            // Hover эффект с искрами
+            btn.addEventListener('mousemove', (e) => {
+                if (Math.random() > 0.7) {
+                    createSparkles(btn, e);
+                }
+            });
+
+            // Магнитный эффект
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+
+                btn.style.transform = `
+                    scale(1.2)
+                    translateZ(30px)
+                    translate(${x * 0.2}px, ${y * 0.2}px)
+                `;
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = '';
+            });
+
+            // Клик
+            btn.addEventListener('click', () => {
+                createClickWave(btn);
+
+                const action = btn.dataset.action;
+                const data = menuData[action];
+
+                document.getElementById('modalIcon').textContent = data.icon;
+                document.getElementById('modalTitle').textContent = data.title;
+                document.getElementById('modalText').textContent = data.text;
+
+                modalOverlay.classList.add('active');
+
+                // Создаём много искр при клике
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        const sparkle = document.createElement('div');
+                        sparkle.className = 'sparkle';
+                        sparkle.style.left = '50%';
+                        sparkle.style.top = '50%';
+                        sparkle.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+                        sparkle.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
+                        btn.appendChild(sparkle);
+                        setTimeout(() => sparkle.remove(), 800);
+                    }, i * 30);
+                }
+            });
+        });
+
+        /* ============================================
+           ЗАКРЫТИЕ МОДАЛЬНОГО ОКНА
+           ============================================ */
+        document.getElementById('modalClose').addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('active');
             }
         });
 
-        // Закрытие по Escape
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                closeModal();
+                modalOverlay.classList.remove('active');
             }
         });
+
+        /* ============================================
+           ДИНАМИЧЕСКИЕ ЧАСТИЦЫ ПРИ ДВИЖЕНИИ
+           ============================================ */
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            const speed = Math.sqrt(dx * dx + dy * dy);
+
+            if (speed > 10 && Math.random() > 0.5) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = e.clientX + 'px';
+                particle.style.top = e.clientY + 'px';
+                particle.style.position = 'fixed';
+                particle.style.zIndex = '1000';
+                particle.style.animation = 'none';
+                particle.style.opacity = '1';
+                particle.style.transition = 'all 0.5s ease-out';
+                document.body.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.style.transform = `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`;
+                    particle.style.opacity = '0';
+                }, 10);
+
+                setTimeout(() => particle.remove(), 500);
+            }
+
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        /* ============================================
+           ЗВУКОВЫЕ ЭФФЕКТЫ (опционально)
+           ============================================ */
+        function playHoverSound() {
+            // Можно добавить звук при необходимости
+        }
+
+        /* ============================================
+           ИНИЦИАЛИЗАЦИЯ ВСЕХ ЭФФЕКТОВ
+           ============================================ */
+        function init() {
+            createStars();
+            createParticles();
+            createLightStreaks();
+            createDigitalRain();
+            createFloatingShapes();
+            createEnergyLines();
+            animateParallax();
+
+            // Добавляем класс для плавной анимации
+            sceneContainer.classList.add('parallax-active');
+        }
+
+        // Запуск при загрузке
+        window.addEventListener('load', init);
+
+        /* ============================================
+           ОБНОВЛЕНИЕ ЦИФРОВОГО ДОЖДЯ
+           ============================================ */
+        setInterval(() => {
+            const drops = document.querySelectorAll('.rain-drop');
+            const chars = '01アイウエオカキクケコサシスセソ';
+            drops.forEach(drop => {
+                if (Math.random() > 0.9) {
+                    drop.textContent = chars[Math.floor(Math.random() * chars.length)];
+                }
+            });
+        }, 200);
+
+        /* ============================================
+           ПУЛЬСАЦИЯ AMBIENT СВЕТА
+           ============================================ */
+        let hue = 40;
+        setInterval(() => {
+            hue = 35 + Math.sin(Date.now() / 2000) * 10;
+            document.querySelector('.ambient-glow').style.background = `
+                radial-gradient(ellipse at 20% 50%, hsla(${hue}, 100%, 50%, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, hsla(${hue}, 100%, 50%, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 20%, hsla(${hue}, 100%, 50%, 0.08) 0%, transparent 40%)
+            `;
+        }, 100);
+
+        /* ============================================
+           ИНТЕРАКТИВНЫЕ ВОЛНЫ ПРИ КЛИКЕ НА ФОН
+           ============================================ */
+        sceneContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.menu-btn')) return;
+
+            const wave = document.createElement('div');
+            wave.style.cssText = `
+                position: absolute;
+                left: ${e.offsetX}px;
+                top: ${e.offsetY}px;
+                width: 10px;
+                height: 10px;
+                background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 50;
+                animation: bgClickWave 1s ease-out forwards;
+            `;
+            sceneContainer.appendChild(wave);
+            setTimeout(() => wave.remove(), 1000);
+        });
+
+        // Добавляем анимацию для волны
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bgClickWave {
+                0% { width: 10px; height: 10px; opacity: 1; }
+                100% { width: 500px; height: 500px; opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
